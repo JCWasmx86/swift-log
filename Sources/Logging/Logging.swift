@@ -1389,13 +1389,21 @@ public struct StreamLogHandler: LogHandler {
         #else
         var timestamp = time(nil)
         let localTime = localtime(&timestamp)
-        strftime(&buffer, buffer.count, "%Y-%m-%dT%H:%M:%S%z", localTime)
+        localtimeHackFill(&buffer, localTime)
         #endif
         return buffer.withUnsafeBufferPointer {
             $0.withMemoryRebound(to: CChar.self) {
                 String(cString: $0.baseAddress!)
             }
         }
+    }
+
+    private func localtimeHackFill(buffer: inout [Int8], _ localTime: UnsafeMutablePointer<tm>) {
+        strftime(&buffer, buffer.count, "%Y-%m-%dT%H:%M:%S%z", localTime)
+    }
+
+    private func localtimeHackFill(_ buffer: inout [Int8], _ localTime: UnsafeMutablePointer<tm>?) {
+        strftime(&buffer, buffer.count, "%Y-%m-%dT%H:%M:%S%z", localTime!)
     }
 }
 
